@@ -1,0 +1,30 @@
+[project]
+name = "sales-analytics-api"
+version = "0.1.0"
+requires-python = ">=3.13"
+
+dependencies = [
+
+    "fastapi",
+
+    "uvicorn[standard]",
+
+    "sqlalchemy>=2.0",
+
+    "pymysql",
+
+    "alembic",
+
+    "polars",
+
+    "xlsxwriter",
+
+    "python-multipart",
+
+    "python-dotenv",
+
+    "pydantic-settings",
+
+    "loguru>=0.7.2",
+
+]
