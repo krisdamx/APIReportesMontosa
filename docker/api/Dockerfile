@@ -6,17 +6,29 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    curl \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
-
-RUN pip install uv
 
 COPY pyproject.toml .
 
-RUN uv pip install --system .
+RUN python -m pip install --upgrade pip
+
+RUN pip install \
+    fastapi \
+    "uvicorn[standard]" \
+    sqlalchemy \
+    pymysql \
+    alembic \
+    polars \
+    python-multipart \
+    pydantic \
+    pydantic-settings \
+    loguru \
+    xlsxwriter \
+    openpyxl
 
 COPY . .
 
-RUN chmod +x docker/api/entrypoint.sh
+EXPOSE 8000
 
-ENTRYPOINT ["docker/api/entrypoint.sh"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
