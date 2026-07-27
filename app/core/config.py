@@ -17,7 +17,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
 
 
 class Settings(BaseSettings):
@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     # Storage
     # ------------------------------------------------------------------
     STORAGE_PATH: Path = BASE_DIR / "storage"
-    CSV_PATH: Path = BASE_DIR / "storage" / "csv"
+    CSV_PATH: Path = STORAGE_PATH / "csv"
     EXCEL_PATH: Path = BASE_DIR / "storage" / "excel"
 
     # ------------------------------------------------------------------
