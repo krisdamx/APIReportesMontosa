@@ -11,7 +11,8 @@ from app.core.constants import ImportStatus
 from app.models.archivo import Archivo
 from app.repositories.archivo_repository import ArchivoRepository
 from app.services.csv_processor import CsvProcessor
-
+from app.mappers.venta_mapper import VentaMapper
+from app.repositories.venta_repository import VentaRepository
 
 class UploadService:
 
@@ -69,4 +70,18 @@ class UploadService:
             status=ImportStatus.PENDING,
         )
 
-        return ArchivoRepository.create(db, archivo)
+        archivo = ArchivoRepository.create(db, archivo)
+
+        rows = VentaMapper.to_rows(
+            archivo_id=archivo.id,
+            df=df,
+        )
+
+        VentaRepository.bulk_upsert(
+            db=db,
+            rows=rows,
+        )
+
+        archivo.status = ImportStatus.COMPLETED
+
+        return ArchivoRepository.update(db, archivo)

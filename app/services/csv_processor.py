@@ -36,7 +36,14 @@ class CsvProcessor:
         Lee el CSV y aplica todas las reglas de negocio.
         """
 
-        df = pl.read_csv(file_path)
+        df = pl.read_csv(
+            file_path,
+            schema_overrides={
+                "Cliente\n[Cliente]": pl.Utf8,
+            },
+        )
+
+        df = cls.normalize_csv_headers(df)
 
         cls.validate_headers(df)
 
@@ -123,3 +130,24 @@ class CsvProcessor:
         return df.with_columns(
             brand.alias(MARCA)
         )
+
+    @classmethod
+    def normalize_csv_headers(cls, df: pl.DataFrame) -> pl.DataFrame:
+        """
+        Normaliza los encabezados del CSV eliminando diferencias de
+        saltos de línea y espacios.
+        """
+
+        rename_map = {}
+
+        for column in df.columns:
+            normalized = (
+                column
+                .replace("\r\n", "\n")
+                .replace("\r", "\n")
+                .strip()
+            )
+
+            rename_map[column] = normalized
+
+        return df.rename(rename_map)
