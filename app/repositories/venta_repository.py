@@ -1,7 +1,12 @@
+import logging
+
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import Session
 
 from app.models.venta import Venta
+from app.core.constants import BATCH_SIZE
+
+logger = logging.getLogger(__name__)
 
 
 class VentaRepository:
@@ -16,30 +21,46 @@ class VentaRepository:
         if not rows:
             return 0
 
-        stmt = insert(Venta).values(rows)
+        total = 0
 
-        update_columns = {
-        column.name: stmt.inserted[column.name]
-        for column in Venta.__table__.columns
-        if column.name not in (
-            "id",
-            "business_key",
-            "created_at",
-            "created_by",
-            "updated_at",
-            "is_active",
-        )
-    }
-
-        stmt = stmt.on_duplicate_key_update(**update_columns)
-
-        print(
-            stmt.compile(
-                dialect=db.bind.dialect,
-                compile_kwargs={"literal_binds": False},
+        for index, batch in enumerate(
+            _chunked(rows, BATCH_SIZE),
+            start=1,
+        ):
+            logger.info(
+                "Procesando batch %s (%s registros)",
+                index,
+                len(batch),
             )
-        )
 
-        db.execute(stmt)
+            stmt = insert(Venta).values(batch)
 
-        return len(rows)
+            update_columns = {
+                column.name: stmt.inserted[column.name]
+                for column in Venta.__table__.columns
+                if column.name not in (
+                    "id",
+                    "business_key",
+                    "created_at",
+                    "created_by",
+                    "updated_at",
+                )
+            }
+
+            stmt = stmt.on_duplicate_key_update(**update_columns)
+
+            db.execute(stmt)
+
+            total += len(batch)
+
+            logger.info(
+                "Importación completada: %s registros procesados en %s batches.",
+                total,
+                index,
+            )    
+
+        return total
+
+def _chunked(data: list, size: int):
+    for i in range(0, len(data), size):
+        yield data[i:i + size]

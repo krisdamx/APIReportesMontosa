@@ -72,3 +72,47 @@ CSV_COLUMNS = {
     "Compañía": COMPANIA,
     "AÑO": ANIO,
 }
+
+# ==========================
+# Tipos de datos
+# ==========================
+
+TEXT_COLUMNS = [
+    FROG_ID,
+    FACTURA,
+    CLIENTE,
+    FABRICANTE,
+    DENOMINACION_COMERCIAL,
+    DESCRIPCION_CANAL,
+    MARCA,
+    PRESENTACION,
+    UNIDAD,
+    DESCRIPCION_PRODUCTO,
+    PLAZA,
+    CANAL,
+    CLASIFICACION,
+    SABOR,
+    COMPANIA,
+]
+
+INTEGER_COLUMNS = [
+    PREVENTA,
+    REPARTO,
+    PRODUCTO,
+    ANIO,
+]
+
+FLOAT_COLUMNS = [
+    CAJAS,
+    MULTIPLO,
+    IMPORTE_BRUTO,
+    TOTAL,
+    FACTOR_CONVERSION_1,
+    FACTOR_CONVERSION_3,
+    HLT,
+    CF,
+]
+
+DATE_COLUMNS = [
+    FECHA_LIQUIDACION,
+]

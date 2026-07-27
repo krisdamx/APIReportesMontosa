@@ -27,6 +27,8 @@ ALLOWED_EXTENSIONS = {
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024  # 1 MB
 
+BATCH_SIZE = 1000
+
 
 # ==========================================================
 # Pagination

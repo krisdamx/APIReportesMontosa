@@ -1,4 +1,5 @@
 from pathlib import Path
+from app.core.csv_columns import IMPORTE_BRUTO, TOTAL
 
 import polars as pl
 
@@ -8,6 +9,10 @@ from app.core.csv_columns import (
     FABRICANTE,
     MARCA,
     CAJAS,
+    TEXT_COLUMNS,
+    INTEGER_COLUMNS,
+    FLOAT_COLUMNS,
+    DATE_COLUMNS,
 )
 
 
@@ -38,16 +43,28 @@ class CsvProcessor:
 
         df = pl.read_csv(
             file_path,
-            schema_overrides={
-                "Cliente\n[Cliente]": pl.Utf8,
-            },
+            infer_schema_length=None,
         )
-
+                
         df = cls.normalize_csv_headers(df)
+
+        print(df.select([
+            "IMPORTE BRUTO S/IMP",
+            "TOTAL S/IMP"
+        ]).head())
+
+        df = cls.normalize_headers(df)
 
         cls.validate_headers(df)
 
-        df = cls.normalize_headers(df)
+        df = cls.cast_columns(df)
+
+        print(
+            df.select([
+                IMPORTE_BRUTO,
+                TOTAL,
+            ]).head()
+        )
 
         df = cls.remove_zero_boxes(df)
 
@@ -63,7 +80,7 @@ class CsvProcessor:
         Verifica que el CSV contenga todas las columnas requeridas.
         """
 
-        expected = set(CSV_COLUMNS.keys())
+        expected = set(CSV_COLUMNS.values())
         received = set(df.columns)
 
         missing = expected - received
@@ -83,13 +100,46 @@ class CsvProcessor:
         return df.rename(CSV_COLUMNS)
 
     @classmethod
+    def cast_columns(cls, df: pl.DataFrame) -> pl.DataFrame:
+        """
+        Convierte las columnas a los tipos utilizados por el sistema.
+        """
+
+        expressions = [
+            *(
+                pl.col(column).cast(pl.Utf8, strict=False)
+                for column in TEXT_COLUMNS
+            ),
+            *(
+                pl.col(column).cast(pl.Int64, strict=False)
+                for column in INTEGER_COLUMNS
+            ),
+           *(
+                pl.col(column)
+                .cast(pl.Utf8, strict=False)
+                .str.strip_chars()
+                .str.replace_all(r"[$,]", "")
+                .cast(pl.Float64, strict=False)
+                for column in FLOAT_COLUMNS
+            ),
+            *(
+                pl.col(column).str.to_date(strict=False)
+                for column in DATE_COLUMNS
+            ),
+        ]
+
+        return df.with_columns(expressions)
+
+    @classmethod
     def remove_zero_boxes(cls, df: pl.DataFrame) -> pl.DataFrame:
         """
         Elimina los registros cuya cantidad de cajas sea igual a cero.
         """
 
         return df.filter(
-            pl.col(CAJAS) != 0
+            pl.col(CAJAS)
+            .fill_null(0)
+            .ne(0)
         )
 
     @classmethod
@@ -138,16 +188,14 @@ class CsvProcessor:
         saltos de línea y espacios.
         """
 
-        rename_map = {}
-
-        for column in df.columns:
-            normalized = (
+        rename_map = {
+            column: (
                 column
                 .replace("\r\n", "\n")
                 .replace("\r", "\n")
                 .strip()
             )
-
-            rename_map[column] = normalized
+            for column in df.columns
+        }
 
         return df.rename(rename_map)

@@ -1,7 +1,7 @@
 import hashlib
+import logging
 import shutil
-import polars as pl
-from pathlib import Path
+import time
 
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
@@ -10,9 +10,12 @@ from app.core.config import settings
 from app.core.constants import ImportStatus
 from app.models.archivo import Archivo
 from app.repositories.archivo_repository import ArchivoRepository
+from app.repositories.venta_repository import VentaRepository
 from app.services.csv_processor import CsvProcessor
 from app.mappers.venta_mapper import VentaMapper
-from app.repositories.venta_repository import VentaRepository
+
+logger = logging.getLogger(__name__)
+
 
 class UploadService:
 
@@ -20,6 +23,10 @@ class UploadService:
 
     @classmethod
     def upload(cls, file: UploadFile, db: Session) -> Archivo:
+
+        start = time.perf_counter()
+
+        logger.info("Iniciando procesamiento del archivo: %s", file.filename)
 
         # Nombre temporal
         temp_path = settings.CSV_PATH / f"{file.filename}.tmp"
@@ -41,7 +48,6 @@ class UploadService:
         final_name = f"{file_hash}.csv"
         final_path = settings.CSV_PATH / final_name
 
-        # Renombrar archivo
         temp_path.rename(final_path)
 
         file_size = final_path.stat().st_size
@@ -53,6 +59,11 @@ class UploadService:
                 raise ValueError("El archivo no contiene registros válidos.")
 
             total_records = df.height
+
+            logger.info(
+                "CSV leído correctamente: %s registros",
+                total_records,
+            )
 
         except Exception:
             final_path.unlink(missing_ok=True)
@@ -77,11 +88,31 @@ class UploadService:
             df=df,
         )
 
-        VentaRepository.bulk_upsert(
+        logger.info("Iniciando carga en base de datos...")
+
+        total = VentaRepository.bulk_upsert(
             db=db,
             rows=rows,
         )
 
+        elapsed = time.perf_counter() - start
+
         archivo.status = ImportStatus.COMPLETED
+        archivo.processing_time_ms = int(elapsed * 1000)
+
+        logger.info(
+            "Carga finalizada: %s registros procesados",
+            total,
+        )
+
+        logger.info(
+            "Tiempo total: %.2f segundos",
+            elapsed,
+        )
+
+        logger.info(
+            "Archivo %s procesado correctamente",
+            archivo.nombre_original,
+        )
 
         return ArchivoRepository.update(db, archivo)

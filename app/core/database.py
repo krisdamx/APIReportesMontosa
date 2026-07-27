@@ -29,7 +29,7 @@ from app.core.config import settings
 
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=settings.SQL_ECHO,
+    echo=False,
 
     # Verifica que la conexión siga viva antes de utilizarla.
     pool_pre_ping=True,
