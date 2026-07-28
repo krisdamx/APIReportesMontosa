@@ -41,17 +41,20 @@ class CsvProcessor:
         Lee el CSV y aplica todas las reglas de negocio.
         """
 
-        df = pl.read_csv(
-            file_path,
-            infer_schema_length=None,
-        )
-                
+        try:
+            df = pl.read_csv(
+                file_path,
+                encoding="utf8",
+                infer_schema_length=None,
+            )
+        except UnicodeDecodeError:
+            df = pl.read_csv(
+                file_path,
+                encoding="windows-1252",
+                infer_schema_length=None,
+            )
+                        
         df = cls.normalize_csv_headers(df)
-
-        print(df.select([
-            "IMPORTE BRUTO S/IMP",
-            "TOTAL S/IMP"
-        ]).head())
 
         df = cls.normalize_headers(df)
 
