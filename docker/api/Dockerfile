@@ -9,23 +9,24 @@ RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml .
-
 RUN python -m pip install --upgrade pip
 
 RUN pip install \
-    fastapi \
-    "uvicorn[standard]" \
-    sqlalchemy \
-    pymysql \
-    alembic \
-    polars \
-    python-multipart \
-    pydantic \
-    pydantic-settings \
-    loguru \
-    xlsxwriter \
-    openpyxl
+    fastapi==0.116.0 \
+    "uvicorn[standard]==0.35.0" \
+    sqlalchemy==2.0.41 \
+    pymysql==1.1.1 \
+    alembic==1.16.4 \
+    polars==1.31.0 \
+    python-multipart==0.0.20 \
+    pydantic==2.11.7 \
+    pydantic-settings==2.10.1 \
+    loguru==0.7.3 \
+    xlsxwriter==3.2.5 \
+    openpyxl==3.1.5 \
+    passlib==1.7.4 \
+    bcrypt==4.0.1 \
+    "python-jose[cryptography]==3.5.0"
 
 COPY . .
 

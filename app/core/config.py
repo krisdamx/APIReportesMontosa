@@ -38,11 +38,23 @@ class Settings(BaseSettings):
     DB_PASSWORD: str
 
     # ------------------------------------------------------------------
+    # JWT
+    # ------------------------------------------------------------------
+    JWT_SECRET_KEY: str = Field(
+        ...,
+        description="Clave secreta para firmar los JWT.",
+    )
+
+    JWT_ALGORITHM: str = "HS256"
+
+    JWT_EXPIRE_MINUTES: int = 60
+
+    # ------------------------------------------------------------------
     # Storage
     # ------------------------------------------------------------------
     STORAGE_PATH: Path = BASE_DIR / "storage"
     CSV_PATH: Path = STORAGE_PATH / "csv"
-    EXCEL_PATH: Path = BASE_DIR / "storage" / "excel"
+    EXCEL_PATH: Path = STORAGE_PATH / "excel"
 
     # ------------------------------------------------------------------
     # Upload

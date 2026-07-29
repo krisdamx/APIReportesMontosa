@@ -9,23 +9,25 @@ description = "Sales Analytics API"
 requires-python = ">=3.13"
 
 dependencies = [
-    "fastapi>=0.116.0",
-    "uvicorn[standard]>=0.35.0",
+    "fastapi==0.116.0",
+    "uvicorn[standard]==0.35.0",
 
-    "sqlalchemy>=2.0.41",
-    "pymysql>=1.1.1",
-    "alembic>=1.16.4",
+    "sqlalchemy==2.0.41",
+    "pymysql==1.1.1",
+    "alembic==1.16.4",
 
-    "polars>=1.31.0",
+    "polars==1.31.0",
 
-    "python-multipart>=0.0.20",
+    "python-multipart==0.0.20",
 
-    "pydantic>=2.11.7",
-    "pydantic-settings>=2.10.1",
+    "pydantic==2.11.7",
+    "pydantic-settings==2.10.1",
 
-    "loguru>=0.7.3",
+    "loguru==0.7.3",
 
-    "xlsxwriter>=3.2.5",
+    "xlsxwriter==3.2.5",
 
-    "openpyxl>=3.1.5",
+    "openpyxl==3.1.5",
+    "python-jose[cryptography]==3.5.0",
+    "passlib[bcrypt]==1.7.4",
 ]
