@@ -3,16 +3,24 @@ Rutas de autenticación.
 
 Responsabilidades:
 - Inicio de sesión.
-- Obtener información del usuario autenticado (futuro).
+- Obtener información del usuario autenticado.
 
-La lógica de negocio se delega completamente a AuthService.
+Toda la lógica de negocio se delega a AuthService y la autenticación
+se resuelve mediante get_current_user.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.schemas.auth_schemas import LoginRequest, LoginResponse
+from app.core.security import get_current_user
+from app.models.user import User
+from app.schemas.auth_schemas import (
+    CurrentUserResponse,
+    LoginRequest,
+    LoginResponse,
+    LogoutResponse,
+)
 from app.services.auth_service import AuthService
 
 router = APIRouter(
@@ -25,16 +33,15 @@ router = APIRouter(
     "/login",
     response_model=LoginResponse,
     summary="Iniciar sesión",
-    description="Autentica un usuario y devuelve un JWT.",
+    description="Autentica un usuario mediante username y password y devuelve un JWT.",
 )
 def login(
     request: LoginRequest,
     db: Session = Depends(get_db),
 ) -> LoginResponse:
     """
-    Autentica un usuario mediante username y password.
+    Autentica un usuario y genera un token JWT.
     """
-
     try:
         return AuthService.login(
             db=db,
@@ -46,3 +53,33 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
         )
+
+
+@router.get(
+    "/me",
+    response_model=CurrentUserResponse,
+)
+def me(
+    current_user: User = Depends(get_current_user),
+):
+    return current_user
+
+@router.post(
+    "/logout",
+    response_model=LogoutResponse,
+    summary="Cerrar sesión",
+    description="Finaliza la sesión del usuario autenticado.",
+)
+def logout(
+    current_user: User = Depends(get_current_user),
+) -> LogoutResponse:
+    """
+    Cierra la sesión del usuario.
+
+    En una autenticación basada en JWT el cierre de sesión consiste en
+    invalidar el token del lado del cliente eliminándolo de su almacenamiento.
+    """
+
+    return LogoutResponse(
+        message="Sesión cerrada correctamente."
+    )

@@ -68,3 +68,4 @@ alembic/versions/__pycache__/
 # Example Files
 # ==========================
 archivos_prueba/
+storage/

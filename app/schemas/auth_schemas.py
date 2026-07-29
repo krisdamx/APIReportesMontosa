@@ -12,8 +12,15 @@ class LoginResponse(BaseModel):
 
 
 class CurrentUserResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
     username: str
     nombre: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class LogoutResponse(BaseModel):
+    """
+    Respuesta al cerrar sesión.
+    """
+
+    message: str
