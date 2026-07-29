@@ -94,6 +94,7 @@ class VentaMapper:
     def to_rows(
         cls,
         archivo_id: int,
+        created_by: int,
         df: pl.DataFrame,
     ) -> list[dict]:
 
@@ -110,6 +111,7 @@ class VentaMapper:
             rows.append(
                 {
                     "archivo_id": archivo_id,
+                    "created_by": created_by,
                     "business_key": business_key,
                     "frog_id": row[FROG_ID],
                     "factura": row[FACTURA],

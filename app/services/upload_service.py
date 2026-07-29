@@ -22,7 +22,12 @@ class UploadService:
     CHUNK_SIZE = 1024 * 1024  # 1 MB
 
     @classmethod
-    def upload(cls, file: UploadFile, db: Session) -> Archivo:
+    def upload(
+        cls,
+        file: UploadFile,
+        db: Session,
+        user_id: int,
+    ) -> Archivo:
 
         start = time.perf_counter()
 
@@ -79,12 +84,14 @@ class UploadService:
             file_size=file_size,
             total_registros=total_records,
             status=ImportStatus.PENDING,
+            created_by=user_id,
         )
 
         archivo = ArchivoRepository.create(db, archivo)
 
         rows = VentaMapper.to_rows(
             archivo_id=archivo.id,
+            created_by=user_id,
             df=df,
         )
 
