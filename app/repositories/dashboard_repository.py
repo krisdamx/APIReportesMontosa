@@ -22,6 +22,8 @@ class DashboardRepository:
             Venta.producto,
             Venta.descripcion_producto,
             Venta.presentacion,
+            Venta.sabor,
+            Venta.clasificacion,
             Venta.anio,
         )
 

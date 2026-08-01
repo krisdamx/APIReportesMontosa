@@ -22,13 +22,19 @@ class DashboardService:
             .to_list()
         )
 
+        values = sorted({
+            str(value).strip()
+            for value in values
+            if str(value).strip() not in ("", "#N/D")
+        })
+
         return [
             {
-                "label": str(value),
-                "value": str(value),
+                "label": str(value).strip(),
+                "value": str(value).strip(),
             }
             for value in values
-        ]
+    ]
 
     @classmethod
     def get_catalogs(
@@ -46,6 +52,8 @@ class DashboardService:
             "companias": cls._catalog(df, "compania"),
             "productos": cls._product_catalog(df),
             "presentaciones": cls._catalog(df, "presentacion"),
+            "sabores": cls._catalog(df, "sabor"),
+            "clasificaciones": cls._catalog(df, "clasificacion"),
             "anios": cls._catalog(df, "anio"),
         }
 

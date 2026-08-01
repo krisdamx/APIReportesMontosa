@@ -1,5 +1,5 @@
 # Sales Analytics API
-## MVP Contract v1.0
+## MVP Contract v1.1
 
 ## Objetivo
 
@@ -8,11 +8,11 @@ La API permite:
 - Autenticar usuarios.
 - Importar información mediante archivos CSV.
 - Consultar el historial de cargas.
-- Obtener información analítica para el Dashboard.
+- Obtener información analítica para el Dashboard Ejecutivo.
 
-La Base de Datos es la fuente de verdad.
+La Base de Datos es la única fuente de verdad.
 
-Los archivos únicamente representan el mecanismo de importación de información.
+Los archivos CSV representan únicamente el mecanismo de importación de información.
 
 ---
 
@@ -20,9 +20,11 @@ Los archivos únicamente representan el mecanismo de importación de informació
 
 Todas las peticiones requieren JWT excepto el Login.
 
-Header requerido:
+Header requerido
 
+```
 Authorization: Bearer {token}
+```
 
 ---
 
@@ -82,7 +84,7 @@ Response
 
 ---
 
-# Uploads
+# Upload
 
 ## Subir archivo
 
@@ -90,11 +92,15 @@ POST /upload
 
 Content-Type
 
+```
 multipart/form-data
+```
 
 Body
 
+```
 file : CSV
+```
 
 Response
 
@@ -103,7 +109,9 @@ Response
     "id": 5,
     "filename": "DIA5.csv",
     "records": 8376,
-    "status": "COMPLETED"
+    "duplicates": 18,
+    "status": "COMPLETED",
+    "processingTime": 7469
 }
 ```
 
@@ -164,15 +172,17 @@ Reglas
 
 El Dashboard consulta la información almacenada en la Base de Datos.
 
-No consulta directamente los archivos CSV.
+Los archivos únicamente sirven para importar información.
 
-Toda la información es filtrable.
+Toda la información del Dashboard es filtrable.
 
 ---
 
-## Dashboard Summary
+# Dashboard Summary
 
 GET /dashboard/summary
+
+Obtiene los principales indicadores ejecutivos.
 
 Query Parameters
 
@@ -185,96 +195,290 @@ Query Parameters
 | plaza | string | No |
 | canal | string | No |
 | compania | string | No |
+| cliente | string | No |
+| producto | string | No |
+| presentacion | string | No |
+| sabor | string | No |
+| clasificacion | string | No |
+| anio | int | No |
 
 Response
 
 ```json
 {
-    "ventas": 1254632.54,
-    "clientes": 1258,
-    "cf": 985.32,
-    "hlt": 754.61,
-    "cajas": 8452
+    "ventas":1254632.54,
+    "clientes":1258,
+    "cf":985.32,
+    "hlt":754.61,
+    "cajas":8452,
+    "pedidos":853,
+    "ticketPromedio":1470.73
 }
 ```
 
 ---
 
-## Dashboard Analytics
+# Dashboard Analytics
 
 GET /dashboard/analytics
 
-Endpoint utilizado para alimentar todas las gráficas.
+Endpoint genérico para construir todas las gráficas y tablas del Dashboard.
 
-Query Parameters
+---
 
-| Parámetro | Tipo |
-|-----------|------|
-| metric | string |
-| groupBy | string |
-| fechaInicio | date |
-| fechaFin | date |
-| fabricante | string |
-| marca | string |
-| plaza | string |
-| canal | string |
-| compania | string |
-| producto | string |
+## Query Parameters
+
+### Métricas
+
+Permite solicitar una o varias métricas.
+
+```
+metrics=ventas
+```
+
+```
+metrics=ventas,hlt,cajas
+```
+
+Métricas soportadas
+
+- ventas
+- importeBruto
+- hlt
+- cf
+- cajas
+- clientes
+- pedidos
+- ticketPromedio
+- productosVendidos
+
+---
+
+### Agrupaciones
+
+Permite agrupar por uno o varios niveles.
 
 Ejemplos
+
+```
+groupBy=marca
+```
+
+```
+groupBy=fabricante
+```
+
+```
+groupBy=plaza
+```
+
+```
+groupBy=plaza,canal
+```
+
+```
+groupBy=marca,producto
+```
+
+Agrupaciones soportadas
+
+- fabricante
+- marca
+- plaza
+- canal
+- cliente
+- producto
+- presentacion
+- sabor
+- clasificacion
+- compania
+- fecha
+- mes
+- anio
+
+---
+
+### Función de agregación
+
+```
+aggregate=sum
+```
+
+Valores soportados
+
+- sum
+- avg
+- count
+- max
+- min
+
+---
+
+### Ordenamiento
+
+```
+orderBy=ventas
+```
+
+```
+order=asc
+```
+
+```
+order=desc
+```
+
+---
+
+### Límite de resultados
+
+```
+limit=10
+```
+
+---
+
+### Totales
+
+```
+includeTotals=true
+```
+
+---
+
+### Filtros
+
+Todos los filtros son opcionales.
+
+| Parámetro |
+|------------|
+| fechaInicio |
+| fechaFin |
+| fabricante |
+| marca |
+| plaza |
+| canal |
+| compania |
+| cliente |
+| producto |
+| presentacion |
+| sabor |
+| clasificacion |
+| anio |
+
+---
+
+## Ejemplos
 
 Ventas por Marca
 
 ```
-GET /dashboard/analytics?metric=ventas&groupBy=marca
-```
-
-Ventas por Fabricante
-
-```
-GET /dashboard/analytics?metric=ventas&groupBy=fabricante
+GET /dashboard/analytics?metrics=ventas&groupBy=marca
 ```
 
 Ventas por Plaza
 
 ```
-GET /dashboard/analytics?metric=ventas&groupBy=plaza
+GET /dashboard/analytics?metrics=ventas&groupBy=plaza
 ```
 
-CF por Canal
+Ventas por Canal
 
 ```
-GET /dashboard/analytics?metric=cf&groupBy=canal
+GET /dashboard/analytics?metrics=ventas&groupBy=canal
+```
+
+Ventas por Fabricante
+
+```
+GET /dashboard/analytics?metrics=ventas&groupBy=fabricante
 ```
 
 HLT por Marca
 
 ```
-GET /dashboard/analytics?metric=hlt&groupBy=marca
+GET /dashboard/analytics?metrics=hlt&groupBy=marca
 ```
 
-Response
+CF por Canal
 
-```json
-[
-    {
-        "label": "Peñafiel",
-        "value": 125462.52
-    },
-    {
-        "label": "Bonafont",
-        "value": 98541.33
-    }
-]
+```
+GET /dashboard/analytics?metrics=cf&groupBy=canal
+```
+
+Top 10 Productos
+
+```
+GET /dashboard/analytics?metrics=ventas&groupBy=producto&limit=10
+```
+
+Ventas por Plaza y Canal
+
+```
+GET /dashboard/analytics?metrics=ventas,hlt,cajas&groupBy=plaza,canal
+```
+
+Comparativo por Año
+
+```
+GET /dashboard/analytics?metrics=ventas&groupBy=anio
+```
+
+Evolución Mensual
+
+```
+GET /dashboard/analytics?metrics=ventas&groupBy=mes
 ```
 
 ---
 
-## Catálogos
+## Response
+
+```json
+{
+    "metadata": {
+        "metrics": [
+            "ventas",
+            "hlt",
+            "cajas"
+        ],
+        "groupBy": [
+            "plaza",
+            "canal"
+        ],
+        "records": 8
+    },
+    "totals": {
+        "ventas": 1250000,
+        "hlt": 852,
+        "cajas": 4200
+    },
+    "data": [
+        {
+            "plaza": "COSAMALOAPAN",
+            "canal": "DETALLE",
+            "ventas": 125000,
+            "hlt": 850,
+            "cajas": 4200
+        },
+        {
+            "plaza": "VERACRUZ",
+            "canal": "TDC",
+            "ventas": 98000,
+            "hlt": 620,
+            "cajas": 3100
+        }
+    ]
+}
+```
+
+---
+
+# Dashboard Catalogs
 
 GET /dashboard/catalogs
 
-Obtiene los datos necesarios para poblar todos los filtros del Dashboard.
+Obtiene todos los catálogos necesarios para construir los filtros del Dashboard.
 
 Response
 
@@ -285,8 +489,11 @@ Response
     "plazas": [],
     "canales": [],
     "companias": [],
+    "clientes": [],
     "productos": [],
     "presentaciones": [],
+    "sabores": [],
+    "clasificaciones": [],
     "anios": []
 }
 ```
@@ -301,38 +508,39 @@ Response
 | 201 | Recurso creado |
 | 400 | Petición inválida |
 | 401 | No autenticado |
+| 403 | Acceso denegado |
 | 404 | Recurso no encontrado |
-| 500 | Error interno |
+| 422 | Error de validación |
+| 500 | Error interno del servidor |
 
 ---
 
 # Flujo General
 
+```
 Login
-
-↓
-
+    │
+    ▼
 Obtener JWT
-
-↓
-
+    │
+    ▼
 Subir CSV
-
-↓
-
+    │
+    ▼
 Consultar Historial
-
-↓
-
+    │
+    ▼
 Seleccionar filtros
-
-↓
-
-Consultar Dashboard
-
-↓
-
-Visualizar gráficas
+    │
+    ▼
+Consultar Summary
+    │
+    ▼
+Consultar Analytics
+    │
+    ▼
+Visualizar Dashboard
+```
 
 ---
 
@@ -340,15 +548,24 @@ Visualizar gráficas
 
 ## Implementado
 
-- Login
-- Auth Me
-- Logout
-- Upload CSV
-- Historial de archivos
-- Detalle de archivo
+- ✅ Login
+- ✅ Auth Me
+- ✅ Logout
+- ✅ Upload CSV
+- ✅ Historial de archivos
+- ✅ Detalle de archivo
 
-## Pendiente
+## En Desarrollo
 
-- Dashboard Summary
-- Dashboard Analytics
-- Dashboard Catalogs
+- 🚧 Dashboard Summary
+- 🚧 Dashboard Analytics
+- 🚧 Dashboard Catalogs
+
+---
+
+# Notas
+
+- Todos los endpoints del Dashboard consultan directamente la Base de Datos.
+- Los archivos CSV únicamente representan el proceso de importación (ETL).
+- El endpoint **/dashboard/analytics** será la base para todas las tablas y gráficas del Dashboard Ejecutivo.
+- El objetivo del contrato es evitar la creación de endpoints específicos para cada visualización y mantener una API flexible y escalable.

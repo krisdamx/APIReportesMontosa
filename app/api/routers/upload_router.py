@@ -36,5 +36,7 @@ def upload_csv(
         id=archivo.id,
         filename=archivo.nombre_original,
         records=archivo.total_registros,
+        duplicates=0,
         status=archivo.status.value,
+        processingTime=archivo.processing_time_ms,
     )

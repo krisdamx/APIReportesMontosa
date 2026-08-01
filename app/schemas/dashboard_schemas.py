@@ -14,4 +14,6 @@ class DashboardCatalogsResponse(BaseModel):
     companias: list[CatalogOption]
     productos: list[CatalogOption]
     presentaciones: list[CatalogOption]
+    sabores: list[CatalogOption]
+    clasificaciones: list[CatalogOption]
     anios: list[CatalogOption]
