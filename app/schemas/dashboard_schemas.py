@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 
 
+# ==========================================================
+# Catalogs
+# ==========================================================
+
 class CatalogOption(BaseModel):
     label: str
     value: str
@@ -17,3 +21,17 @@ class DashboardCatalogsResponse(BaseModel):
     sabores: list[CatalogOption]
     clasificaciones: list[CatalogOption]
     anios: list[CatalogOption]
+
+
+# ==========================================================
+# Summary
+# ==========================================================
+
+class DashboardSummaryResponse(BaseModel):
+    ventas: float
+    clientes: int
+    cf: float
+    hlt: float
+    cajas: float
+    pedidos: int
+    ticketPromedio: float
