@@ -35,3 +35,22 @@ class DashboardSummaryResponse(BaseModel):
     cajas: float
     pedidos: int
     ticketPromedio: float
+
+
+# ==========================================================
+# Analytics
+# ==========================================================
+
+from typing import Any
+
+
+class DashboardAnalyticsMetadata(BaseModel):
+    metrics: list[str]
+    groupBy: list[str]
+    records: int
+
+
+class DashboardAnalyticsResponse(BaseModel):
+    metadata: DashboardAnalyticsMetadata
+    totals: dict[str, float | int]
+    data: list[dict[str, Any]]

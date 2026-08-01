@@ -1,7 +1,10 @@
+from decimal import Decimal
+
 import polars as pl
 from sqlalchemy.orm import Session
 
 from app.repositories.dashboard_repository import DashboardRepository
+from app.services.dashboard_analytics_engine import DashboardAnalyticsEngine
 
 
 class DashboardService:
@@ -37,7 +40,9 @@ class DashboardService:
         ]
 
     @staticmethod
-    def _product_catalog(df: pl.DataFrame):
+    def _product_catalog(
+        df: pl.DataFrame,
+    ):
 
         productos = (
             df
@@ -60,6 +65,32 @@ class DashboardService:
             }
             for item in productos
         ]
+
+    @staticmethod
+    def _normalize_data(
+        rows: list[dict],
+    ) -> list[dict]:
+
+        normalized = []
+
+        for row in rows:
+
+            item = {}
+
+            for key, value in row.items():
+
+                if isinstance(value, Decimal):
+                    item[key] = round(float(value), 2)
+
+                elif isinstance(value, float):
+                    item[key] = round(value, 2)
+
+                else:
+                    item[key] = value
+
+            normalized.append(item)
+
+        return normalized
 
     @classmethod
     def get_catalogs(
@@ -153,4 +184,110 @@ class DashboardService:
             "cajas": round(cajas, 2),
             "pedidos": pedidos,
             "ticketPromedio": round(ticket_promedio, 2),
+        }
+
+    @classmethod
+    def get_analytics(
+        cls,
+        db: Session,
+        metrics: list[str],
+        group_by: list[str],
+        order_by: str | None = None,
+        order: str = "desc",
+        limit: int | None = None,
+        include_totals: bool = True,
+        fecha_inicio=None,
+        fecha_fin=None,
+        fabricante=None,
+        marca=None,
+        plaza=None,
+        canal=None,
+        compania=None,
+        producto=None,
+        presentacion=None,
+        sabor=None,
+        clasificacion=None,
+        anio=None,
+    ):
+
+        df = DashboardRepository.get_sales_dataframe(
+            db=db,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            fabricante=fabricante,
+            marca=marca,
+            plaza=plaza,
+            canal=canal,
+            compania=compania,
+            producto=producto,
+            presentacion=presentacion,
+            sabor=sabor,
+            clasificacion=clasificacion,
+            anio=anio,
+        )
+
+        if df.is_empty():
+
+            totals = {}
+
+            if include_totals:
+                totals = {
+                    metric: 0
+                    for metric in metrics
+                }
+
+            return {
+                "metadata": {
+                    "metrics": metrics,
+                    "groupBy": group_by,
+                    "records": 0,
+                },
+                "totals": totals,
+                "data": [],
+            }
+
+        result = DashboardAnalyticsEngine.build(
+            df=df,
+            metrics=metrics,
+            group_by=group_by,
+            order_by=order_by,
+            order=order,
+            limit=limit,
+        )
+
+        totals = {}
+
+        if include_totals:
+
+            summary = cls.get_summary(
+                db=db,
+                fecha_inicio=fecha_inicio,
+                fecha_fin=fecha_fin,
+                fabricante=fabricante,
+                marca=marca,
+                plaza=plaza,
+                canal=canal,
+                compania=compania,
+                producto=producto,
+                presentacion=presentacion,
+                sabor=sabor,
+                clasificacion=clasificacion,
+                anio=anio,
+            )
+
+            totals = {
+                metric: summary.get(metric, 0)
+                for metric in metrics
+            }
+
+        return {
+            "metadata": {
+                "metrics": metrics,
+                "groupBy": group_by,
+                "records": result.height,
+            },
+            "totals": totals,
+            "data": cls._normalize_data(
+                result.to_dicts()
+            ),
         }
