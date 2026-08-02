@@ -162,7 +162,7 @@ class DashboardService:
 
         clientes = df["cliente"].n_unique()
 
-        cf = float(df["cf"].fill_null(0).sum())
+        cf = float(df["cf"].cast(pl.Float64, strict=False).fill_null(0).sum())
 
         hlt = float(df["hlt"].fill_null(0).sum())
 

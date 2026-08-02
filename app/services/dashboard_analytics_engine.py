@@ -7,7 +7,7 @@ class DashboardAnalyticsEngine:
         "ventas": pl.col("total").sum().alias("ventas"),
         "importeBruto": pl.col("importe_bruto").sum().alias("importeBruto"),
         "hlt": pl.col("hlt").sum().alias("hlt"),
-        "cf": pl.col("cf").sum().alias("cf"),
+        "cf": pl.col("cf").cast(pl.Float64, strict=False).sum().alias("cf").alias("cf"),
         "cajas": pl.col("cajas").sum().alias("cajas"),
         "clientes": pl.col("cliente").n_unique().alias("clientes"),
         "pedidos": pl.col("frog_id").n_unique().alias("pedidos"),

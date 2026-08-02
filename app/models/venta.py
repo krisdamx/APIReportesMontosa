@@ -73,7 +73,7 @@ class Venta(BaseEntity):
 
     clasificacion: Mapped[str | None] = mapped_column(String(100))
 
-    cf: Mapped[str | None] = mapped_column(String(50))
+    cf: Mapped[float | None] = mapped_column(DECIMAL(18, 6))
 
     sabor: Mapped[str | None] = mapped_column(String(100))
 
