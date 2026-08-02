@@ -92,13 +92,111 @@ class DashboardService:
 
         return normalized
 
+
+    @staticmethod
+    def _summary_from_dataframe(
+        df: pl.DataFrame,
+    ) -> dict:
+
+        if df.is_empty():
+            return {
+                "ventas": 0,
+                "clientes": 0,
+                "cf": 0,
+                "hlt": 0,
+                "cajas": 0,
+                "pedidos": 0,
+                "ticketPromedio": 0,
+            }
+
+        ventas = float(
+            df["total"]
+            .fill_null(0)
+            .sum()
+        )
+
+        clientes = (
+            df["cliente"]
+            .n_unique()
+            if "cliente" in df.columns
+            else 0
+        )
+
+        cf = (
+            float(
+                df["cf"]
+                .cast(pl.Float64, strict=False)
+                .fill_null(0)
+                .sum()
+            )
+            if "cf" in df.columns
+            else 0
+        )
+
+        hlt = (
+            float(
+                df["hlt"]
+                .fill_null(0)
+                .sum()
+            )
+            if "hlt" in df.columns
+            else 0
+        )
+
+        cajas = (
+            float(
+                df["cajas"]
+                .fill_null(0)
+                .sum()
+            )
+            if "cajas" in df.columns
+            else 0
+        )
+
+        pedidos = (
+            df["frog_id"].n_unique()
+            if "frog_id" in df.columns
+            else 0
+        )
+
+        ticket = (
+            ventas / pedidos
+            if pedidos > 0
+            else 0
+        )
+
+        return {
+            "ventas": round(ventas, 2),
+            "clientes": clientes,
+            "cf": round(cf, 2),
+            "hlt": round(hlt, 2),
+            "cajas": round(cajas, 2),
+            "pedidos": pedidos,
+            "ticketPromedio": round(ticket, 2),
+        }
+
     @classmethod
     def get_catalogs(
         cls,
         db: Session,
     ):
 
-        df = DashboardRepository.get_sales_dataframe(db)
+        df = DashboardRepository.get_sales_dataframe(
+            db=db,
+            columns=[
+                "fabricante",
+                "marca",
+                "plaza",
+                "canal",
+                "compania",
+                "producto",
+                "descripcion_producto",
+                "presentacion",
+                "sabor",
+                "clasificacion",
+                "anio",
+            ],
+        )
 
         return {
             "fabricantes": cls._catalog(df, "fabricante"),
@@ -133,6 +231,14 @@ class DashboardService:
 
         df = DashboardRepository.get_sales_dataframe(
             db=db,
+            columns=[
+                "total",
+                "cliente",
+                "cf",
+                "hlt",
+                "cajas",
+                "frog_id",
+            ],
             fecha_inicio=fecha_inicio,
             fecha_fin=fecha_fin,
             fabricante=fabricante,
@@ -210,8 +316,14 @@ class DashboardService:
         anio=None,
     ):
 
+        columns = DashboardAnalyticsEngine.required_columns(
+            metrics=metrics,
+            group_by=group_by,
+        )
+
         df = DashboardRepository.get_sales_dataframe(
             db=db,
+            columns=columns,
             fecha_inicio=fecha_inicio,
             fecha_fin=fecha_fin,
             fabricante=fabricante,
@@ -259,21 +371,7 @@ class DashboardService:
 
         if include_totals:
 
-            summary = cls.get_summary(
-                db=db,
-                fecha_inicio=fecha_inicio,
-                fecha_fin=fecha_fin,
-                fabricante=fabricante,
-                marca=marca,
-                plaza=plaza,
-                canal=canal,
-                compania=compania,
-                producto=producto,
-                presentacion=presentacion,
-                sabor=sabor,
-                clasificacion=clasificacion,
-                anio=anio,
-            )
+            summary = cls._summary_from_dataframe(df)
 
             totals = {
                 metric: summary.get(metric, 0)

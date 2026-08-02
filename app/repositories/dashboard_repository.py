@@ -5,12 +5,34 @@ from sqlalchemy.orm import Session
 
 from app.models.venta import Venta
 
+COLUMN_MAP = {
+    "fabricante": Venta.fabricante,
+    "marca": Venta.marca,
+    "plaza": Venta.plaza,
+    "canal": Venta.canal,
+    "compania": Venta.compania,
+    "producto": Venta.producto,
+    "descripcion_producto": Venta.descripcion_producto,
+    "presentacion": Venta.presentacion,
+    "sabor": Venta.sabor,
+    "clasificacion": Venta.clasificacion,
+    "anio": Venta.anio,
+    "total": Venta.total,
+    "importe_bruto": Venta.importe_bruto,
+    "cliente": Venta.cliente,
+    "cf": Venta.cf,
+    "hlt": Venta.hlt,
+    "cajas": Venta.cajas,
+    "frog_id": Venta.frog_id,
+    "fecha_liquidacion": Venta.fecha_liquidacion,
+}
 
 class DashboardRepository:
 
     @staticmethod
     def get_sales_dataframe(
         db: Session,
+        columns: list[str],
         fecha_inicio=None,
         fecha_fin=None,
         fabricante=None,
@@ -26,26 +48,10 @@ class DashboardRepository:
     ) -> pl.DataFrame:
 
         stmt = select(
-            Venta.fabricante,
-            Venta.marca,
-            Venta.plaza,
-            Venta.canal,
-            Venta.compania,
-            Venta.producto,
-            Venta.descripcion_producto,
-            Venta.presentacion,
-            Venta.sabor,
-            Venta.clasificacion,
-            Venta.anio,
-
-            # Datos para Summary
-            Venta.total,
-            Venta.cliente,
-            Venta.cf,
-            Venta.hlt,
-            Venta.cajas,
-            Venta.frog_id,
-            Venta.fecha_liquidacion,
+            *[
+                COLUMN_MAP[column]
+                for column in columns
+            ]
         )
 
         if fecha_inicio:

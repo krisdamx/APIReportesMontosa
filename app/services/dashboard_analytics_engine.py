@@ -7,7 +7,7 @@ class DashboardAnalyticsEngine:
         "ventas": pl.col("total").sum().alias("ventas"),
         "importeBruto": pl.col("importe_bruto").sum().alias("importeBruto"),
         "hlt": pl.col("hlt").sum().alias("hlt"),
-        "cf": pl.col("cf").cast(pl.Float64, strict=False).sum().alias("cf").alias("cf"),
+        "cf": (pl.col("cf").cast(pl.Float64, strict=False).sum().alias("cf")),
         "cajas": pl.col("cajas").sum().alias("cajas"),
         "clientes": pl.col("cliente").n_unique().alias("clientes"),
         "pedidos": pl.col("frog_id").n_unique().alias("pedidos"),
@@ -33,20 +33,66 @@ class DashboardAnalyticsEngine:
         "anio": "anio",
     }
 
+    METRIC_COLUMNS = {
+        "ventas": ["total"],
+        "importeBruto": ["importe_bruto"],
+        "hlt": ["hlt"],
+        "cf": ["cf"],
+        "cajas": ["cajas"],
+        "clientes": ["cliente"],
+        "pedidos": ["frog_id"],
+        "productosVendidos": ["producto"],
+        "ticketPromedio": [
+            "total",
+            "frog_id",
+        ],
+    }
+
+    GROUP_COLUMNS = {
+        "fabricante": ["fabricante"],
+        "marca": ["marca"],
+        "plaza": ["plaza"],
+        "canal": ["canal"],
+        "producto": ["producto"],
+        "presentacion": ["presentacion"],
+        "sabor": ["sabor"],
+        "clasificacion": ["clasificacion"],
+        "compania": ["compania"],
+        "fecha": ["fecha_liquidacion"],
+        "mes": ["fecha_liquidacion"],
+        "anio": ["anio"],
+    }
+
+    
+
     @staticmethod
     def prepare_dataframe(
         df: pl.DataFrame,
+        group_by: list[str],
     ) -> pl.DataFrame:
 
-        return df.with_columns(
-            pl.col("fecha_liquidacion")
-            .dt.strftime("%Y-%m-%d")
-            .alias("fecha"),
+        expressions = []
 
-            pl.col("fecha_liquidacion")
-            .dt.strftime("%Y-%m")
-            .alias("mes"),
-        )
+        if "fecha" in group_by:
+
+            expressions.append(
+                pl.col("fecha_liquidacion")
+                .dt.strftime("%Y-%m-%d")
+                .alias("fecha")
+            )
+
+        if "mes" in group_by:
+
+            expressions.append(
+                pl.col("fecha_liquidacion")
+                .dt.strftime("%Y-%m")
+                .alias("mes")
+            )
+
+        if not expressions:
+            return df
+
+        return df.with_columns(expressions)
 
     @classmethod
     def _parse_metrics(
@@ -104,7 +150,10 @@ class DashboardAnalyticsEngine:
         limit: int | None = None,
     ) -> pl.DataFrame:
 
-        df = cls.prepare_dataframe(df)
+        df = cls.prepare_dataframe(
+            df,
+            group_by,
+        )
 
         metric_expr = cls._parse_metrics(metrics)
 
@@ -149,3 +198,36 @@ class DashboardAnalyticsEngine:
             result = result.head(limit)
 
         return result
+
+    @classmethod
+    def required_columns(
+        cls,
+        metrics: list[str],
+        group_by: list[str],
+    ) -> list[str]:
+
+        columns = set()
+
+        for group in group_by:
+
+            required = cls.GROUP_COLUMNS.get(group)
+
+            if required is None:
+                raise ValueError(
+                    f"Agrupación no soportada: {group}"
+                )
+
+            columns.update(required)
+
+        for metric in metrics:
+
+            required = cls.METRIC_COLUMNS.get(metric)
+
+            if required is None:
+                raise ValueError(
+                    f"Métrica no soportada: {metric}"
+                )
+
+            columns.update(required)
+
+        return sorted(columns)

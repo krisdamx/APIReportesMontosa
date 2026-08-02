@@ -62,13 +62,6 @@ class CsvProcessor:
 
         df = cls.cast_columns(df)
 
-        print(
-            df.select([
-                IMPORTE_BRUTO,
-                TOTAL,
-            ]).head()
-        )
-
         df = cls.remove_zero_boxes(df)
 
         df = cls.apply_manufacturer_rules(df)

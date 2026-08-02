@@ -11,7 +11,8 @@ from app.schemas.dashboard_schemas import (
     DashboardSummaryResponse,
     DashboardAnalyticsResponse,
 )
-from app.services.dashboard_service import DashboardService
+from app.services.dashboard_service import DashboardService, DashboardRepository
+from app.services.dashboard_analytics_engine import DashboardAnalyticsEngine
 
 router = APIRouter(
     prefix="/dashboard",
@@ -123,3 +124,5 @@ def get_analytics(
         clasificacion=clasificacion,
         anio=anio,
     )
+
+
