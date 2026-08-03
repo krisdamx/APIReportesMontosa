@@ -16,3 +16,15 @@ class AuthRepository:
             .filter(User.username == username)
             .first()
         )
+
+    @staticmethod
+    def create_user(
+        db: Session,
+        user: User,
+    ) -> User:
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        return user

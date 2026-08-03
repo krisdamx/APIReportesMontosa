@@ -24,3 +24,15 @@ class LogoutResponse(BaseModel):
     """
 
     message: str
+
+class RegisterRequest(BaseModel):
+    username: str
+    nombre: str
+    password: str
+
+
+class RegisterResponse(BaseModel):
+    id: int
+    username: str
+    nombre: str
+    message: str
