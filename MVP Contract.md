@@ -367,9 +367,9 @@ GET /dashboard/analytics?metrics=ventas&groupBy=producto&limit=10
 -   ✅ Dashboard Catalogs
 -   ✅ Dashboard Summary
 -   ✅ Dashboard Analytics
+-   ✅ Optimización de consultas (\>20 s en datasets grandes).
 
 ## Pendientes
 
--   Optimización de consultas (\>20 s en datasets grandes).
 -   Soporte completo para aggregate (avg, count, min, max).
 -   Documentación OpenAPI definitiva.

@@ -9,6 +9,7 @@ from app.core.config import settings
 # IMPORTANTE: Registrar todos los modelos
 from app.models.archivo import Archivo
 from app.models.venta import Venta
+from app.models.user import User
 
 config = context.config
 
