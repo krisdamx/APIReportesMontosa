@@ -47,7 +47,7 @@ class Settings(BaseSettings):
 
     JWT_ALGORITHM: str = "HS256"
 
-    JWT_EXPIRE_MINUTES: int = 60
+    JWT_EXPIRE_MINUTES: int = 600
 
     # ------------------------------------------------------------------
     # Storage
